@@ -6,7 +6,7 @@ dotenv.config();
 export const authConf = {
     clientId: process.env.CLIENT_ID,
     secretId: process.env.CLIENT_SECRET,
-    redirectUri: 'https://caiman-legal-mutt.ngrok-free.app/auth/callback',
+    redirectUri: 'https://salesautomators-test-emve.onrender.com/auth/callback',
     getTokenUrl: `${process.env.AUTH_API}/oauth/token`,
 };
 
