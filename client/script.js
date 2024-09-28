@@ -6,3 +6,11 @@ document.getElementById("modal-form").addEventListener("submit", function(event)
 
     console.log("form submit:", { input1, input2 });
 });
+
+
+let x = 0.1
+let y = 0.2
+
+if (x + y != 0.3) {
+    console.log("object");
+}
