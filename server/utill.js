@@ -57,8 +57,8 @@ export async function refreshAccessToken(refreshToken) {
         await Token.update(
             {
                 token: data.access_token,
-                expiresIn: Date.now() + data.expires_in * 1000, // update expiry timestamp
-                refreshToken: data.refresh_token || refreshToken, // Pipedrive sometimes returns a new refresh token
+                expiresIn: Date.now() + data.expires_in * 1000,
+                refreshToken: data.refresh_token || refreshToken, 
             },
             { where: { refreshToken } }
         );

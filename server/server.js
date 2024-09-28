@@ -10,7 +10,7 @@ import { getAccessToken } from './utill.js';
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = 3333;
 
 app.use(cors());
 app.use(express.json());
