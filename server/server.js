@@ -1,15 +1,13 @@
-const express = require('express');
-const cors = require('cors');
-const path = require("path");
+import express from 'express';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import pipedrive from '@pipedrive/app-extensions-sdk';
+import dotenv from 'dotenv';
+import Token from './token.model.js';
+import { getAccessToken } from './utill.js';
 
-require('dotenv').config()
-
-const authConf = {
-    clientId: process.env.CLIENT_ID,
-    secretId: process.env.CLIENT_SECRET,
-    redirectUri: 'https://27ad-95-56-31-10.ngrok-free.app/auth/callback',
-    getTokenUrl: `${process.env.AUTH_API}/oauth/token`
-}
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
@@ -17,9 +15,26 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
+// File path setup for ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Endpoints
+app.get('/modal', async (req, res) => {
+    try {
+        const token = await Token.findOne({ where: { apiDomain: 'https://salesautomotors.pipedrive.com' }, rejectOnEmpty: true })
+        if (!token || Date.now() > token.expiresIn) {
+            console.log(token);
+            await refreshAccessToken(token.refreshToken);
+        }
+
+        // Pipedrive setup
+    } catch (error) {
+        console.error(error);
+    }
+
     res.sendFile(path.resolve(__dirname, '../client', 'index.html'));
-    console.log("form");
+    console.log('form');
 });
 
 app.get('/auth/callback', async (req, res) => {
@@ -31,28 +46,16 @@ app.get('/auth/callback', async (req, res) => {
     }
 
     try {
-        const response = await fetch(authConf.getTokenUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                'grant_type': 'authorization_code',
-                'code': authCode,
-                'client_id': authConf.clientId,
-                'client_secret': authConf.secretId,
-                'redirect_uri': authConf.redirectUri,
-            })
+        const data = await getAccessToken(authCode);
+
+        const tokenInst = await Token.create({
+            token: data.access_token,
+            refreshToken: data.refresh_token,
+            expiresIn: Date.now() + data.expires_in * 1000,
+            domain: data.api_domain
         });
 
-        if (!response.ok) {
-            console.log(res);
-            throw new Error('Not ok response');
-        }
-
-        const data = await response.json(); 
-
-        console.log('tokens saved:', data);
+        console.log('tokens saved:', tokenInst);
         res.redirect('/');
     } catch (error) {
         console.error('Error fetching tokens:', error);

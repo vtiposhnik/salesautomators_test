@@ -4,6 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/@pipedrive/app-extensions-sdk@0/dist/index.umd.js"></script>
+    <meta http-equiv="Content-Security-Policy" 
+    content="
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://ssl.gstatic.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+    ">
     <title>Pipedrive Modal</title>
 </head>
 
@@ -20,7 +28,60 @@
         <button type="submit">Submit</button>
     </form>
 
-    <script src="./script.js"></script>
+    <script src="./script.js" type="script"></script>
+    <script>
+        (async function () {
+            console.log("WOIRJWOENFOSKDJFOSDKJFOKSJFJJJJ!!!!!!!!!!!!")
+            // Initialize SDK
+            const sdk = await new AppExtensionsSDK({
+                identifier: 'f32419a6-3a98-4379-842c-e1cb3f1b3e0c' // your action ID
+            }).initialize();
+      
+            // Resize the modal to a specific size
+            await sdk.execute(AppExtensionsSdk.Command.RESIZE, { width: 1000, height: 800 });
+      
+            // Listen for form submission
+            const form = document.getElementById('modal-form');
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+      
+                const formData = {
+                    input1: document.getElementById('input1').value,
+                    input2: document.getElementById('input2').value
+                };
+      
+                try {
+                    // Example: Make API call to your server to save the form data
+                    const response = await fetch('/api/save-job', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+      
+                    if (response.ok) {
+                        const result = await response.json();
+                        console.log('Job saved:', result);
+                    } else {
+                        console.error('Failed to save job:', response.status);
+                    }
+      
+                    // Close the modal after saving
+                    sdk.execute(AppExtensionsSdk.Command.CLOSE_CUSTOM_MODAL);
+                } catch (error) {
+                    console.error('Error saving job:', error);
+                }
+            });
+            console.log("COMPLETE");
+      
+            // Optionally, listen for other SDK events
+            sdk.listen(AppExtensionsSdk.Event.CLOSE_CUSTOM_MODAL, () => {
+                console.log('Modal closed');
+            });
+        })();
+      </script>
+      
 </body>
 
 </html>
